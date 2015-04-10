@@ -2,7 +2,7 @@ package grawler
 
 type Grawler struct {
 	workerQueue chan chan interface{}
-	pendingTask chan interface{}
+	pendingTask *InfChan
 	quitChan    chan bool
 }
 
@@ -13,7 +13,7 @@ type Config struct{
 func NewGrawler(w Worker,c *Config) *Grawler {
 	g := &Grawler{
 		workerQueue: make(chan chan interface{}, c.MaxGoroutine),
-		pendingTask: make(chan interface{}, 10000),
+		pendingTask: NewInfChan(),
 		quitChan:    make(chan bool),
 	}
     for i:=0;i<c.MaxGoroutine;i++{
@@ -26,9 +26,10 @@ func NewGrawler(w Worker,c *Config) *Grawler {
 
 func (g *Grawler) Run() {
 	go func() {
+        out := g.pendingTask.Out()
 		for {
 			select {
-            case task := <-g.pendingTask:
+            case task := <-out:
                 worker := <-g.workerQueue
                 worker <- task
 			case <-g.quitChan:
@@ -43,5 +44,6 @@ func (g *Grawler) Quit() {
 }
 
 func (g *Grawler) PushTask(i interface{}){
-    g.pendingTask <- i
+    in := g.pendingTask.In()
+    in <- i
 }

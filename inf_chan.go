@@ -1,5 +1,10 @@
 package grawler
 
+const (
+	bufferSize = 128
+)
+
+//InfChan provides the channel which has infinite buffer
 type InfChan struct {
 	q        queue
 	inchan   chan interface{}
@@ -7,11 +12,12 @@ type InfChan struct {
 	quitchan chan bool
 }
 
+//NewInfChan returns a new InfChan which is already initialized
 func NewInfChan() *InfChan {
 	out := &InfChan{
 		q:        newQueue(),
-		inchan:   make(chan interface{}, 128),
-		outchan:  make(chan interface{}, 128),
+		inchan:   make(chan interface{}, bufferSize),
+		outchan:  make(chan interface{}, bufferSize),
 		quitchan: make(chan bool),
 	}
 	go func() {
@@ -45,14 +51,17 @@ func NewInfChan() *InfChan {
 	return out
 }
 
+//Close close InfChannel
 func (c *InfChan) Close() {
 	close(c.inchan)
 }
 
+//In returns a channel for input
 func (c *InfChan) In() chan<- interface{} {
 	return c.inchan
 }
 
+//Out returns a channel for output
 func (c *InfChan) Out() <-chan interface{} {
 	return c.outchan
 }
