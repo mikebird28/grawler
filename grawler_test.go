@@ -12,18 +12,27 @@ func (t *TestWorker) Do(interface{}) {
 	logs("TEST OUTPUT")
 }
 
+func (t *TestWorker) Panic(err interface{}){
+    logs("PANIC")
+}
+
 type TestTask struct{}
 
 func TestGrawler(t *testing.T) {
-	println("Start")
+    logs("Start")
 	conf := &Config{
 		MaxGoroutine: 4,
 	}
-	tworker := &TestWorker{}
+	tworker := &Fetcher{}
 	g := NewGrawler(tworker, conf)
 	g.Run()
-	for i := 0; i < 10; i++ {
-		g.PushTask(TestTask{})
+    urls := []string{
+        "http://b.hatena.ne.jp/hotentry/it",
+        "http://b.hatena.ne.jp/hotentry/game",
+        "htp://",
+    }
+    for _,url := range urls{
+		g.PushTask(url)
 	}
 	time.Sleep(1 * time.Second)
 }

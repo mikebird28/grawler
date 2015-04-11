@@ -2,6 +2,7 @@ package grawler
 
 type Worker interface {
 	Do(interface{})
+    Panic(err interface{})
 }
 
 type worker struct {
@@ -27,11 +28,20 @@ func (sw *worker) start() {
 		for {
 			select {
 			case t := <-sw.wchan:
-				sw.w.Do(t)
+                sw.do(t)
                 sw.grawler.workerQueue <-sw.wchan
 			case <-sw.qchan:
 				break
 			}
 		}
 	}()
+}
+
+func (sw *worker) do(i interface{}){
+    defer func(){
+        if err := recover(); err != nil{
+            sw.w.Panic(err)
+        }
+    }()
+    sw.w.Do(i)
 }
