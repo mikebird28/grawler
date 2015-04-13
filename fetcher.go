@@ -9,7 +9,20 @@ import (
 
 var URLError = errors.New("Cannot parse the url.")
 
+func NewFetcher(fp FetcherProc)*Fetcher{
+    f := &Fetcher{
+        fp : fp,
+    }
+    return f
+}
+
 type Fetcher struct {
+    fp FetcherProc
+}
+
+type FetcherProc interface{
+    Done(resp *http.Response)
+    Panic(i interface{})
 }
 
 func (f *Fetcher) Do(i interface{}) {
@@ -22,14 +35,13 @@ func (f *Fetcher) Do(i interface{}) {
 	if err != nil {
 		panic(err)
 	}
-	f.Done(resp)
+	f.fp.Done(resp)
 }
 
-func (f *Fetcher) Panic(i interface{}) {
+func (f *Fetcher) Panic(i interface{}){
+    f.fp.Panic(i)
 }
 
-func (f *Fetcher) Done(resp *http.Response) {
-}
 
 func NewGet(url string) (http.Request,error){
     req,err :=  http.NewRequest("GET",url,nil)

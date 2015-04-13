@@ -1,6 +1,7 @@
 package grawler
 
 import (
+    "net/http"
 	"testing"
 	"time"
 )
@@ -16,14 +17,21 @@ func (t *TestWorker) Panic(err interface{}) {
 	logs("PANIC")
 }
 
-type TestTask struct{}
+type TestProc struct{}
+func (t *TestProc) Done(resp *http.Response){
+    logs("ok")
+}
+func (t *TestProc) Panic(i interface{}){
+    logs("panic")
+}
+var tp = &TestProc{}
 
 func TestGrawler(t *testing.T) {
 	logs("Start")
 	conf := &Config{
 		MaxGoroutine: 4,
 	}
-	tworker := &Fetcher{}
+	tworker := NewFetcher(tp)
 	g := NewGrawler(tworker, conf)
 	go g.Run()
 	urls := []string{
